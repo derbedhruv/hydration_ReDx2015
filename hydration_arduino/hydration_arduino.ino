@@ -11,7 +11,7 @@
 ########################################################### */
 
 #define redLED 11
-#define irLED 10
+#define irLED 5
 #define DCout 3
 
 float filtered_value, last_filtered_value;
@@ -49,13 +49,16 @@ void setup(){
   // We will also set the pwm frequency of pins 9 and 10 to the same frequency (to control the other LED)..
   // HOLY CRAP this is for timer1, which we're using for the timerinterrupt 
   // TCCR1B = TCCR1B & 0b11111000 | 0x01;  // 31372.55 Hz
+  
+  // Hence we'll use the remaining pins 5 and 6 which rely on Timer3
+  TCCR0B = TCCR0B & 0b11111000 | 0x01;
 
   // STEP 3 : Give the output pwm value in the range (0, 255) mapped to (0, 5)V
   pinMode(redLED, OUTPUT);
   pinMode(irLED, OUTPUT);
   
   // set the voltages you want to output for the two LEDs (these will be RC-filtered eventually
-  float voltage_red = 2.80;
+  float voltage_red = 3.00;
   float voltage_ir = 2.5;
   
   // 
