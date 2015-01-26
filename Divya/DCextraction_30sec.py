@@ -7,32 +7,25 @@ from numpy import *
 from scipy.signal import butter, lfilter
 from scipy.signal import freqs
 
-def butter_lowpass(cutOff, fs, order=5):
-    nyq = 0.5 * fs
-    normalCutoff = cutOff / nyq
-    b, a = butter(order, normalCutoff, btype='low', analog = True)
-    return b, a
-
-def butter_lowpass_filter(data, cutOff, fs, order=4):
-    b, a = butter_lowpass(cutOff, fs, order=order)
-    y = lfilter(b, a, data)
-    return y
-    
-filename="C:\Users\Divya\Documents\RedX\hydration_ReDx2015\Divya\Sample_data_without_headers\\20140522-0002_2.txt"
-lines= [line.rstrip('\n').split('	') for line in open(filename,"r")]
+filename="C:\Users\Divya\Documents\RedX\Filters\\values_30sec.txt"
+#filename="C:\Users\Divya\Documents\RedX\Filters\\value.txt"
+lines= [line.rstrip('\n') for line in open(filename,"r")]
 
 s=len(lines)
-print s
 
 time = np.zeros((s, 1))
 data = np.zeros((s, 1))
 for i in range(0,s):
-    time[i] = lines[i][0]
-    data[i] = lines[i][1]  
+    time[i] = i
+    data[i] = lines[i]#[1]  
 
+s=len(data)
+print s
+
+print data
 
 sample=data[0]
-filtered_value1=np.zeros((s, 1))-1.1
+filtered_value1=np.zeros((s, 1))
 filtered_value2=np.zeros((s, 1))
 filtered_value3=np.zeros((s, 1))
 
@@ -42,7 +35,7 @@ i=1
 while i<s:
     last_sample=sample;
     sample=data[i]
-    filtered_value1[i] = filtered_value1[i-1] + 0.0002 * (data[i-1]- filtered_value1[i-1])+0.00007*(data[i-2] - filtered_value1[i-2])+0.00002*(data[i-3] - filtered_value1[i-3])+0.000005*(data[i-4] - filtered_value1[i-4])
+    filtered_value1[i] = filtered_value1[i-1] + 0.0001 * (data[i-1]- filtered_value1[i-1])+0.00007*(data[i-2] - filtered_value1[i-2])+0.00002*(data[i-3] - filtered_value1[i-3])+0.000005*(data[i-4] - filtered_value1[i-4])
     i=i+1
     
 
