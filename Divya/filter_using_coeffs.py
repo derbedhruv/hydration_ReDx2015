@@ -38,11 +38,13 @@ filtered_value3=np.zeros((s, 1))
 
 print "Starting now"
 
+
+
 i=1
 while i<s:
     last_sample=sample;
     sample=data[i]
-    filtered_value1[i] = filtered_value1[i-1] + 0.0002 * (data[i-1]- filtered_value1[i-1])+0.00007*(data[i-2] - filtered_value1[i-2])+0.00002*(data[i-3] - filtered_value1[i-3])+0.000005*(data[i-4] - filtered_value1[i-4])
+    filtered_value1[i] =1.0e-005*(0.1576*data[i] + 0.3153*data[i-1] + 0.1576*data[i-2])+1.9964*filtered_value1[i-1]-0.9965*filtered_value1[i-2] 
     i=i+1
     
 
