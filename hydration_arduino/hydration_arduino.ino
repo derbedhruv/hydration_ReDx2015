@@ -11,7 +11,7 @@
 ########################################################### */
 
 #define redLED 11
-// #define irLED 
+#define irLED 10
 #define DCout 3
 
 float filtered_value, last_filtered_value;
@@ -40,16 +40,26 @@ void setup(){
 
   sei();//allow interrupts
 
-  // STEP 2 : Set PWM frequency for pin 11, which will control LED brightness via RC smoothing of the pwm signal
+  // STEP 2 : Set PWM frequency for pin 11 (which will control LED brightness via RC smoothing of the pwm signal) and pin 3 (which will control the DC output)
   // using pin 11 since it is controlled by Timer2 (we;re using Timer1 for the interrupt)
   // first we'll change the frequency of the PWM to suit our needs...
   // ref: http://playground.arduino.cc/Main/TimerPWMCheatsheet
   TCCR2B = TCCR2B & 0b11111000 | 0x01;  // 31372.55 Hz
+ 
+  // We will also set the pwm frequency of pins 9 and 10 to the same frequency (to control the other LED)..
+  TCCR1B = TCCR1B & 0b11111000 | 0x01;  // 31372.55 Hz
 
   // STEP 3 : Give the output pwm value in the range (0, 255) mapped to (0, 5)V
   pinMode(redLED, OUTPUT);
-  float voltage = 2.08;  // voltage you wanna outputio
-  analogWrite(redLED, int((voltage/5.0)*256) - 1);
+  pinMode(irLED, OUTPUT);
+  
+  // set the voltages you want to output for the two LEDs (these will be RC-filtered eventually
+  float voltage_red = 2.80;
+  float voltage_ir = 2.5;
+  
+  // 
+  analogWrite(redLED, int((voltage_red/5.0)*256) - 1);
+  analogWrite(irLED, int((voltage_ir/5.0)*256) - 1);
 }
 
 ISR(TIMER1_COMPA_vect){   //  timer1 interrupt 100Hz
@@ -63,12 +73,7 @@ ISR(TIMER1_COMPA_vect){   //  timer1 interrupt 100Hz
    // filter out PPG frequencies and only have the DC part
    // DSP LPF Cutoff = 
    filtered_value = last_filtered_value + 0.004*(value - last_filtered_value);
-   
-   // then send the values over serial...
-   // but send an int because it's faster
-   // Serial.println(int(filtered_value));
-   // Serial.println(value);
-   
+      
    // the filtered value is now send out through PWM pin D3, which is also controlled by Timer2
    // filtered_value is in the range (0,1023) and the analogWrite value needs to be in the range (0, 255).
    // Hence we convert..
