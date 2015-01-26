@@ -47,7 +47,8 @@ void setup(){
   TCCR2B = TCCR2B & 0b11111000 | 0x01;  // 31372.55 Hz
  
   // We will also set the pwm frequency of pins 9 and 10 to the same frequency (to control the other LED)..
-  TCCR1B = TCCR1B & 0b11111000 | 0x01;  // 31372.55 Hz
+  // HOLY CRAP this is for timer1, which we're using for the timerinterrupt 
+  // TCCR1B = TCCR1B & 0b11111000 | 0x01;  // 31372.55 Hz
 
   // STEP 3 : Give the output pwm value in the range (0, 255) mapped to (0, 5)V
   pinMode(redLED, OUTPUT);
