@@ -59,9 +59,9 @@ void setup(){
   
   // set the voltages you want to output for the two LEDs (these will be RC-filtered eventually
   float voltage_red = 3.00;
-  float voltage_ir = 2.0;
+  float voltage_ir = 2.50;
   
-  // 
+  // Set the PWM frequencies of the LED pins
   analogWrite(redLED, int((voltage_red/5.0)*256) - 1);
   // analogWrite(irLED, int((voltage_ir/5.0)*256) - 1);
 }
