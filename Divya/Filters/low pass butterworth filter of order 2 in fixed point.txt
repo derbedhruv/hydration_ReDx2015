@@ -1,0 +1,28 @@
+
+//Low pass butterworth filter order=2 alpha1=0.04 
+class filter
+{
+	public:
+		filter()
+		{
+			for(int i=0; i <= 2; i++)
+				v[i]=0;
+		}
+	private:
+		short v[3];
+	public:
+		short step(short x)
+		{
+			v[0] = v[1];
+			v[1] = v[2];
+			long tmp = ((((x * 1793041L) >>  7)	//= (   1.3359200028e-2 * x)
+				+ ((v[0] * -1469887L) >> 1)	//+( -0.7008967812*v[0])
+				+ (v[1] * 1727487L)	//+(  1.6474599811*v[1])
+				)+524288) >> 20; // round and downshift fixed point /1048576
+
+			v[2]= (short)tmp;
+			return (short)((
+				 (v[0] + v[2])
+				+2 * v[1])); // 2^
+		}
+};
