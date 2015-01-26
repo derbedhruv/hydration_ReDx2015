@@ -59,11 +59,11 @@ void setup(){
   
   // set the voltages you want to output for the two LEDs (these will be RC-filtered eventually
   float voltage_red = 3.00;
-  float voltage_ir = 2.5;
+  float voltage_ir = 2.0;
   
   // 
   analogWrite(redLED, int((voltage_red/5.0)*256) - 1);
-  analogWrite(irLED, int((voltage_ir/5.0)*256) - 1);
+  // analogWrite(irLED, int((voltage_ir/5.0)*256) - 1);
 }
 
 ISR(TIMER1_COMPA_vect){   //  timer1 interrupt 100Hz
@@ -75,7 +75,6 @@ ISR(TIMER1_COMPA_vect){   //  timer1 interrupt 100Hz
    // Serial.println(value);
    
    // filter out PPG frequencies and only have the DC part
-   // DSP LPF Cutoff = 
    filtered_value = last_filtered_value + 0.004*(value - last_filtered_value);
       
    // the filtered value is now send out through PWM pin D3, which is also controlled by Timer2
