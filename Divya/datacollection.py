@@ -16,6 +16,7 @@ from Tkinter import *
 
 def show_entry_fields():
    print("Name: %s\nAge: %s\nRemarks: %s" % (e1.get(), e2.get(), e3.get()))
+   
 
 master = Tk()
 Label(master, text="Name").grid(row=0)

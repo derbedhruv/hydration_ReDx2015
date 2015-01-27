@@ -5,6 +5,7 @@ import numpy as np
 import scipy as sp
 from scipy.signal import argrelmax
 
+
 #----------------------------------------------------------------------------------------------------------------------------
 def smooth(x,window_len=301,window='hamming'):
     """smooth the data using a window with requested size.
@@ -72,7 +73,7 @@ def smooth_peakdetect():
     
     #---------------------------------------reading from text file------------------------------------------------------------------
     
-    lines = [line.rstrip('\n').split('	') for line in open("C:\\Users\\nithin\\Documents\\pythonRedx\\850nm1minData.txt","r")]
+    lines = [line.rstrip('\n').split('	') for line in open("C:\Users\Divya\Documents\RedX\hydration_ReDx2015\Divya\Sample_data_without_headers\\850nm-1minData_2.txt","r")]
     #print lines
     #print len(lines)
 
