@@ -13,12 +13,13 @@
 #define redLED 11
 #define irLED 5
 #define DCout 3
-#define DC_FILTER_ORDER
+#define DC_FILTER_ORDER 4
 
-float filtered_value[DC_FILTER_BUFFER-1], last_filtered_value1,last_filtered_value2,last_filtered_value3,last_filtered_value4;
+float filtered_value[DC_FILTER_BUFFER+1];
 int value, last_value;
-int value_buffer[DC_FILTER_BUFFER];
+int value_buffer[DC_FILTER_BUFFER+1];
 //value_buffer is implemented as a circular buffer of size = filter order + 1 (because we are using an IIR filter)
+//filtered_value is also implemented as a circular buffer
 
 void setup(){
   Serial.begin(115200);    // superfast serial communication
@@ -79,25 +80,24 @@ ISR(TIMER1_COMPA_vect){   //  timer1 interrupt 100Hz
    // filter out PPG frequencies and only have the DC part
    // DSP LPF Cutoff = 
    filtered_value[0] = filtered_value[1] + 0.0002*(value[1] - filtered_value[1])+0.00007*(value[2]-filtered_value[2])+0.00002*(value[3]-filtered_value[3])+0.000005*(value[4]-filtered_value[4]);
-   //    filtered_value1[i] = filtered_value1[i-1] + 0.0002 * (data[i-1]- filtered_value1[i-1])+0.00007*(data[i-2] - filtered_value1[i-2])+0.00002*(data[i-3] - filtered_value1[i-3])+0.000005*(data[i-4] - filtered_value1[i-4])
-   filtered_value[4] = filtered_value[3];
-   filtered_value[3] = last_filtered_value[2];
-   filtered_value[2] = last_filtered_value[1];
-   filtered_value[1] = filtered_value[0];
-
-      
+   //filtered_value1[i] = filtered_value1[i-1] + 0.0002 * (data[i-1]- filtered_value1[i-1])+0.00007*(data[i-2] - filtered_value1[i-2])+0.00002*(data[i-3] - filtered_value1[i-3])+0.000005*(data[i-4] - filtered_value1[i-4])
+   
    // the filtered value is now send out through PWM pin D3, which is also controlled by Timer2
    // filtered_value is in the range (0,1023) and the analogWrite value needs to be in the range (0, 255).
    // Hence we convert..
    analogWrite(DCout, int(256*(filtered_value[0] + 1)/1024) - 1);
    
-   
-   value[4]=value[3];
+   value[4]=value[3]; //last value in the input buffer is flushed out
    value[3]=value[2];
    value[2]=value[1];
    value[1]=value[0];
    
-   
+   filtered_value[4] = filtered_value[3]; //last value in the buffer is flushed out
+   filtered_value[3] = last_filtered_value[2];
+   filtered_value[2] = last_filtered_value[1];
+   filtered_value[1] = filtered_value[0];
+
+      
    // Then we read the value in again from an isolated analog pin and print it out..
    Serial.println(analogRead(A3));
 }
