@@ -1,7 +1,18 @@
+'''
+  This file takes details about a patient and then reads in csv data from an arduino UNO 
+  and puts the data into a text file which will carry the patients name and the date.
+  
+  Authors: Divya Ramnath, Nithin Sankar K, Shoubhik Deb, Dhruv Joshi
+  
+  Done as part of the 2015 ReDx workshop at IIT Bombay organized by the camera culture group, MIT Media Lab.
+  
+'''
 from fnmatch import fnmatch, fnmatchcase
 import os
 from Tkinter import *
 import datetime
+import serial
+import os
 
 #print lines
 #print len(lines)
@@ -34,21 +45,13 @@ mainloop( )
 date=datetime.datetime.now()
 print (date)
 count = 0
-filesearchname="%s%s%s_%s_*.txt" % (date.year,date.month,date.day,e1.get()) #"20150127_%s_*.txt"%(e1.get())
-print (filesearchname)
 
-for path,subdirs,files in os.walk('C:/Users/Divya/Documents/RedX/hydration_ReDx2015/Divya/log'):
-    for filename in files:
-        print (filename)
-        if fnmatch(filename,filesearchname):
-            count=count+1
-            
-count=count + 1 #count to be appended
-print (count)
+# check if the current file exists in path, if so then increase count which will be appended
+while os.path.exists("%s%s%s_%s_%d.txt" % (date.year,date.month,date.day,e1.get(),count)):
+    count += 1
 
-
-newfilename = "C:/Users/Divya/Documents/RedX/hydration_ReDx2015/Divya/log/%s%s%s_%s_%d.txt" % (date.year,date.month,date.day,e1.get(),count)
-print (newfilename)
+newfilename = "%s%s%s_%s_%d.txt" % (date.year,date.month,date.day,e1.get(),count)
+# print (newfilename)
 
 f = open(newfilename,"a") #opens file with name of "test.mtxt"
 f.write("Name:" + e1.get() + "\n")
@@ -58,8 +61,14 @@ f.write("Remarks:" + e3.get() + "\n")
 #f.write("Man, I long to be a real file")
 #f.write("and hang out with all my new real file friends.") 
 
-#SERIAL COMMUNICATION COMES HERE!!!!!!!!!!!!!!!!
+time = sampling_rate*samples
 
+#SERIAL COMMUNICATION COMES HERE!!!!!!!!!!!!!!!!
+arduino = serial.Serial('COM23', 115200, timeout=1)
+
+for i in range(0, time):
+  data = arduino.readline()
+  f.write(data)
 
 #END OF SERIAL COMMUNICATION
 
