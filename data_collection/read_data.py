@@ -64,6 +64,9 @@ arduino = serial.Serial('COM22', 115200, timeout=1)
 
 for i in range(0, no_samples):
   data = arduino.readline()
+  dt = datetime.datetime.now()
+  f.write(str(dt.microsecond))
+  f.write(',')
   f.write(data)
 
 #END OF SERIAL COMMUNICATION
