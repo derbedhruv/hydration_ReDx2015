@@ -15,7 +15,7 @@ import serial
 import os
 
 ## global definitions...
-sampling_rate = 
+no_samples = 1000
 
 def show_entry_fields():
    print("Name: %s\nAge: %s\nRemarks: %s" % (e1.get(), e2.get(), e3.get()))
@@ -56,12 +56,13 @@ f.write("Name:" + e1.get() + "\n")
 f.write("Age:" + e2.get() + "\n")
 f.write("Remarks:" + e3.get() + "\n")
 
-time = sampling_rate*samples
+# and finally the headers for the data...
+f.write("time, AC_850, DC_850, AC_1300, DC_1300\n")
 
 #SERIAL COMMUNICATION COMES HERE!!!!!!!!!!!!!!!!
-arduino = serial.Serial('COM23', 115200, timeout=1)
+arduino = serial.Serial('COM22', 115200, timeout=1)
 
-for i in range(0, time):
+for i in range(0, no_samples):
   data = arduino.readline()
   f.write(data)
 
