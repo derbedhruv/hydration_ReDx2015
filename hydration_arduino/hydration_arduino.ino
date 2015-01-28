@@ -10,18 +10,35 @@
   http://www.instructables.com/id/Arduino-Timer-Interrupts/
 ########################################################### */
 
-#define redLED 11
-#define irLED 5
+#define LED_850 11
+#define LED_1300 5
 #define DCout 3
 
-float filtered_value, last_filtered_value;
+#define timer_frequency 200 // the timer shall count at this speed.
+#define sampling_freq 200    // Fsampl in Hz
+
+// intensity of the LEDs
+#define intensity_850 5
+#define intensity_1300 1
+
+boolean first = true;
+
+int sampling_time = (double)timer_frequency/(double)sampling_freq;  // the time for which one sample (one wavelength) will be taken
+
+int counter = 0;  // this counts incrementally to 200 at every 0.005s to keep track of things
+float filtered_value_850 = 512, last_filtered_value_850;  // giving a better initialization value to the filter
+float filtered_value_1300 = 512, last_filtered_value_1300;  // giving a better initialization value to the filter
 int value, last_value;
+String outdata;
+float DC_gain = 1.05;  // the gain given to calibrate the DC in the output
+
+// set the voltages you want to output for the two LEDs (these will be RC-filtered eventually)
+// int intensity_850 = 50, intensity_1300 = 10;
 
 void setup(){
   Serial.begin(115200);    // superfast serial communication
   
-  double sampling_freq = 100;  // Fsampl in Hz
-  int match_register = 16000000/(1024*sampling_freq) - 1; // match register to match that sampling frequency
+  int match_register = 16000000/(1024*timer_frequency) - 1; // match register to match that sampling frequency
   
   // STEP 1: we create an interrupt timer at the sampling frequency
   cli();//stop interrupts
@@ -54,39 +71,139 @@ void setup(){
   TCCR0B = TCCR0B & 0b11111000 | 0x01;
 
   // STEP 3 : Give the output pwm value in the range (0, 255) mapped to (0, 5)V
-  pinMode(redLED, OUTPUT);
-  pinMode(irLED, OUTPUT);
+  pinMode(LED_850, OUTPUT);
+  pinMode(LED_1300, OUTPUT);
   
-  // set the voltages you want to output for the two LEDs (these will be RC-filtered eventually
-  float voltage_red = 3.00;
-  float voltage_ir = 2.50;
+  // int voltage_ir = 736;
+  
+  // pin 8 is the common "anode" for the LEDs, it will be permanently set to high
+  pinMode(8, OUTPUT);
+  digitalWrite(8, HIGH);
   
   // Set the PWM frequencies of the LED pins
-  analogWrite(redLED, int((voltage_red/5.0)*256) - 1);
-  // analogWrite(irLED, int((voltage_ir/5.0)*256) - 1);
+  // analogWrite(redLED, 256*(1 - (voltage_red + 1)/1024));
+  // analogWrite(redLED, intensity_850);
+  // analogWrite(irLED, intensity_1300);
+  
+  counter = 0;
 }
 
-ISR(TIMER1_COMPA_vect){   //  timer1 interrupt 100Hz
-   // update variables...
-   last_filtered_value = filtered_value;
-
-   // will simply read A0 and then filter it
-   value = analogRead(A0);
-   // Serial.println(value);
-   
-   // filter out PPG frequencies and only have the DC part
-   filtered_value = last_filtered_value + 0.004*(value - last_filtered_value);
-      
-   // the filtered value is now send out through PWM pin D3, which is also controlled by Timer2
-   // filtered_value is in the range (0,1023) and the analogWrite value needs to be in the range (0, 255).
-   // Hence we convert..
-   analogWrite(DCout, int(256*(filtered_value + 1)/1024) - 1);
-   
-   // Then we read the value in again from an isolated analog pin and print it out..
-   Serial.println(analogRead(A3));
+ISR(TIMER1_COMPA_vect){   //  timer1 interrupt 1kHz
+   // increment the counter
+   counter++;
+   // Using the timer interrupt, we shall be making this work...
+  
 }
 
 void loop(){
-  // nothign happens here
-  // Serial.println(analogRead(A0));
+  
+  // First we handle the 850nm..
+   if (first == true) {
+     
+     // update variables...
+     last_filtered_value_850 = filtered_value_850;
+  
+     // will simply read A0 and then filter it
+     value = analogRead(A0);
+     // Serial.println(value);
+     analogWrite(LED_1300, intensity_1300);
+     analogWrite(LED_850, 255);
+     
+     // filter out PPG frequencies and only have the DC part
+     filtered_value_850 = last_filtered_value_850 + 0.004*(value - last_filtered_value_850);
+        
+     // the filtered value is now send out through PWM pin D3, which is also controlled by Timer2
+     // filtered_value is in the range (0,1023) and the analogWrite value needs to be in the range (0, 255).
+     // Hence we convert..
+     analogWrite(DCout, int(DC_gain*256*(filtered_value_850 + 1)/1024) - 1);
+     
+     // Then we read the value in again from an isolated analog pin and print it out..
+     outdata = String(analogRead(A3)) + "," + String(int((filtered_value_850))) + ",";
+     Serial.print(outdata);
+     
+     first = false;
+     delay(20);
+     
+  } else{
+     
+     // update variables...
+     last_filtered_value_1300 = filtered_value_1300;
+  
+     // will simply read A0 and then filter it
+     value = analogRead(A0);
+     // Serial.println(value);
+     analogWrite(LED_850, intensity_850);
+     
+     // filter out PPG frequencies and only have the DC part
+     filtered_value_1300 = last_filtered_value_1300 + 0.004*(value - last_filtered_value_1300);
+     analogWrite(LED_1300, 255);
+             
+     // the filtered value is now send out through PWM pin D3, which is also controlled by Timer2
+     // filtered_value is in the range (0,1023) and the analogWrite value needs to be in the range (0, 255).
+     // Hence we convert..
+     analogWrite(DCout, int(DC_gain*256*(filtered_value_1300 + 1)/1024) - 1);
+     
+     // Then we read the value in again from an isolated analog pin and print it out..
+     outdata = String(analogRead(A3)) + "," + String(int((filtered_value_1300)));
+     Serial.println(outdata);
+     
+     // reset the counter
+     counter = 0;
+     
+     first = true;
+     
+     delay(20);
+  }
+  
+  /*
+  // Using the timer interrupt, we shall be making this work...
+  // First we handle the 850nm..
+   if (counter < sampling_time) {
+     analogWrite(LED_850, intensity_850);
+     // update variables...
+     last_filtered_value = filtered_value;
+  
+     // will simply read A0 and then filter it
+     value = analogRead(A0);
+     // Serial.println(value);
+     analogWrite(LED_850, 255);
+     
+     // filter out PPG frequencies and only have the DC part
+     filtered_value = last_filtered_value + 0.004*(value - last_filtered_value);
+        
+     // the filtered value is now send out through PWM pin D3, which is also controlled by Timer2
+     // filtered_value is in the range (0,1023) and the analogWrite value needs to be in the range (0, 255).
+     // Hence we convert..
+     analogWrite(DCout, int(DC_gain*256*(filtered_value + 1)/1024) - 1);
+     
+     // Then we read the value in again from an isolated analog pin and print it out..
+     outdata = String(analogRead(A3)) + "," + String(int((filtered_value)));
+     Serial.print(outdata);
+     
+  } else if (counter > sampling_time) {
+     analogWrite(LED_1300, intensity_1300);
+     // update variables...
+     last_filtered_value = filtered_value;
+  
+     // will simply read A0 and then filter it
+     value = analogRead(A0);
+     // Serial.println(value);
+     
+     // filter out PPG frequencies and only have the DC part
+     filtered_value = last_filtered_value + 0.004*(value - last_filtered_value);
+     analogWrite(LED_1300, 255);
+        
+     // the filtered value is now send out through PWM pin D3, which is also controlled by Timer2
+     // filtered_value is in the range (0,1023) and the analogWrite value needs to be in the range (0, 255).
+     // Hence we convert..
+     analogWrite(DCout, int(DC_gain*256*(filtered_value + 1)/1024) - 1);
+     
+     // Then we read the value in again from an isolated analog pin and print it out..
+     outdata = String(analogRead(A3)) + "," + String(int((filtered_value)));
+     Serial.println(outdata);
+     
+     // reset the counter
+     counter = 0;
+  }
+  */
 }
