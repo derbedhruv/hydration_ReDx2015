@@ -14,11 +14,8 @@ import datetime
 import serial
 import os
 
-#print lines
-#print len(lines)
-
-#print lines[50003][1]
-
+## global definitions...
+sampling_rate = 
 
 def show_entry_fields():
    print("Name: %s\nAge: %s\nRemarks: %s" % (e1.get(), e2.get(), e3.get()))
@@ -43,7 +40,7 @@ mainloop( )
 
 
 date=datetime.datetime.now()
-print (date)
+# print (date)
 count = 0
 
 # check if the current file exists in path, if so then increase count which will be appended
@@ -53,13 +50,11 @@ while os.path.exists("%s%s%s_%s_%d.txt" % (date.year,date.month,date.day,e1.get(
 newfilename = "%s%s%s_%s_%d.txt" % (date.year,date.month,date.day,e1.get(),count)
 # print (newfilename)
 
+# print the details into the file...
 f = open(newfilename,"a") #opens file with name of "test.mtxt"
 f.write("Name:" + e1.get() + "\n")
 f.write("Age:" + e2.get() + "\n")
 f.write("Remarks:" + e3.get() + "\n")
-#f.write("Maybe someday, he will promote me to a real file.")
-#f.write("Man, I long to be a real file")
-#f.write("and hang out with all my new real file friends.") 
 
 time = sampling_rate*samples
 
